@@ -35,38 +35,38 @@
     <!-- 引入 url地址 -->
     <script src="./tools/config.js"></script>
     <!-- 引入交互文件 -->
-    <script src='./tools/config.js'></script>
+    <script src='./tools/user.js'></script>
 
     <script>
-        //   获取 输入框元素
-
-        // var inp = $('.input_txt');
-        // var pss = $('.input_pass');
-
-        // 给input注册点击事件 然后判断是否为空
-
+        // 获取用户名密码 用$开头命名变量 更好区别JQ和dom操作
+        var $inp = $('.input_txt');
+        var $pass = $('.input_pass');
+        // 获取登录按钮注册点击事件
         $('.input_sub').on('click', function() {
-            // 把输入框的内容用个变量接收方便判断xx`
-            var username = $('.input_txt').val().trim();
-            var password = $('.input_pass').val().trim();
-            // 判断输入是否为空 
-            if (username == '' || password == '') {
-                alert('请输入正确信息');
-                return;
+            //   把用户名和密码输入框获取 并接受
+            var username = $inp.val().trim();
+            var password = $pass.val().trim();
+            // 判断 输入框内容 如果内容为空则弹出框提示错误
+            if (username == '' || password == "") {
+                alert('请填写正确信息');
+                return
             }
             user.login({
                 data: {
                     user_name: username,
                     password: password
+
+
                 },
+                // 成功回调函数 如果成功跳转index.html页面
                 success: function() {
-                    location.href = 'index.html';
+                    location.href = "index.html";
                 },
+                // 失败回调函数 如果填写不正确 则弹框提示.
                 fail: function() {
-                    alert('用户名和密码输入错误');
+                    alert('用户名密码错误');
                 }
             });
-
         });
     </script>
 
