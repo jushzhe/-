@@ -128,6 +128,45 @@
             });
 
         });
+        // 更换图片name
+        user.getUser({
+            // 如果成功时
+            success: function(data) {
+                //  获取左侧图片元素
+                $('.user_info img,.user_center_link img').prop('src', data.user_pic);
+                // 添加文字
+                $('.user_info span').text('欢迎' + data.nickname);
+
+
+
+            }
+
+        });
+
+        //   用户信息获取显示
+
+        // 请求发送  get
+        $.ajax({
+            //   接口地址
+            url: 'http://localhost:8000/admin/userinfo_get',
+            // 回调函数 传个参数
+            success: function(res) {
+                if (res.code == 200) {
+                    // 遍历
+                    $.each(res.data, function(k, ele) {
+                        //    判断
+                        if (k === 'user_pic') {
+                            // 获取头像id
+                            $('#avatar').prop('src', ele);
+                            return;
+                        }
+                        $("#" + k).val(ele);
+                    })
+
+                }
+            }
+
+        });
     </script>
 </body>
 
