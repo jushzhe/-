@@ -11,6 +11,13 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="js/jquery-1.12.4.min.js"></script>
+    <script src="./js/jquery.twbsPagination.js"></script>
+    <!-- 引入模板引入 -->
+    <script src="./js/template-web.js"></script>
+    <!-- 引入地址 -->
+    <script src="./tools/config.js"></script>
+    <!-- 引入封装 -->
+    <script src="./tools/article.js"></script>
 </head>
 
 <body>
@@ -21,20 +28,28 @@
         <div class="container-fluid common_con">
             <div class="row opt_btns">
                 <div class="col-xs-6">
+
+
+
                     <form class="form-inline">
-                        <select id="selCategory" name="" class="form-control input-sm">
-                            <option>所有分类</option>
-                            <option>未分类</option>
+
+
+
+                        <select id="selCategory" name="type" class="form-control input-sm">
+                            <option value="">所有分类</option>
+                            <!-- <option>未分类</option>
                             <option>奇趣事</option>
                             <option>会生活</option>
-                            <option>爱旅行</option>
+                            <option>爱旅行</option> -->
                         </select>
+
+
                         <select id="selStatus" name="" class="form-control input-sm">
-                            <option>所有状态</option>
-                            <option value="drafted">草稿</option>
-                            <option value="published">已发布</option>
+                            <option value="">所有状态</option>
+                            <option value="草稿">草稿</option>
+                            <option value="已发布">已发布</option>
                         </select>
-                        <button id="btnSearch" class="btn btn-default btn-sm">筛选</button>
+                        <button id="btnSearch" type="button" class="btn btn-default btn-sm">筛选</button>
                     </form>
                 </div>
                 <div class="col-xs-6">
@@ -44,7 +59,7 @@
 
             <table class="table table-striped table-bordered table-hover mp20">
                 <thead>
-                    <tr>123
+                    <tr>
                         <th>标题</th>
                         <th>作者</th>
                         <th>分类</th>
@@ -57,7 +72,7 @@
 
 
 
-                    <tr>
+                    <!-- <tr>
 
                         <td>王积千造统最头</td>
                         <td>杰克</td>
@@ -243,14 +258,14 @@
                             <a href="post-edit.html?id=995" class="btn btn-default btn-xs">编辑</a>
                             <a href="javascript:deleteTr( 995 );" class="btn btn-danger btn-xs">删除</a>
                         </td>
-                    </tr>
+                    </tr> -->
 
 
                 </tbody>
             </table>
 
             <div class="row text-center">
-                <ul class="pagination pagination-sm">
+                <ul class="pagination pagination-sm" id="list">
                     <li class="page-item first disabled"><a href="#" class="page-link">首页</a></li>
                     <li class="page-item prev disabled"><a href="#" class="page-link">上一页</a></li>
                     <li class="page-item active"><a href="#" class="page-link">1</a></li>
@@ -273,6 +288,113 @@
         $('#release_btn').click(function() {
             window.parent.setMenu(1, 1);
         })
+    </script>
+    <!-- 文章模板 -->
+    <script type="text/template" id="article">
+        {{each data val}}
+
+        <tr>
+
+            <td>{{val.title}}</td>
+            <td>{{val.author}}</td>
+            <td>{{val.type}}</td>
+            <td class="text-center">{{val.date}}</td>
+            <td class="text-center">{{val.state}}</td>
+            <td class="text-center">
+                <a href="post-edit.html?id=1000" class="btn btn-default btn-xs">编辑</a>
+                <a href="javascript:deleteTr( 1000 );" class="btn btn-danger btn-xs">删除</a>
+            </td>
+        </tr>
+        {{/each}}
+    </script>
+    <!-- 设置下拉菜单模板 -->
+
+    <script type="text/template" id="category">
+        {{each data val}}
+        <option value="{{val.id}}">{{val.name}}</option>
+        {{/each}}
+    </script>
+
+    <script>
+        //    调用getArticle方法
+        getArticle();
+        //   声明一个全局变量
+        var page = 1;
+
+        var lastTotalPage = 0;
+
+        // var $list = $('#list');
+
+
+        article.getCate({
+            success: function(res) {
+                // console.log(res);
+                // 获取id
+                $('#selCategory').append(template('category', res));
+            }
+        });
+        //    筛选按钮操作
+        // 获取筛选按钮 注册点击事件 调用之前函数
+        $('#btnSearch').on('click', function() {
+            //    调用之前封装的函数
+            getArticle();
+            // 
+            $('.first').click();
+        });
+
+
+
+
+
+
+        //    封装函数
+        function getArticle() {
+            // 调用jq ajax get发送请求 因为默认是get 所以不用设置type
+            $.ajax({
+                url: 'http://localhost:8000/admin/search',
+
+                data: {
+                    page: page,
+                    type: $('#selCategory').val(),
+                    state: $('#selStatus').val(),
+                },
+                // 回调函数
+                success: function(res) {
+                    console.log(res);
+
+                    if (res.code == 200) {
+                        // 生成结构
+                        $('tbody').html(template('article', res));
+                        // console.log(res);
+
+                        if (res.totalPage === lastTotalPage) {
+                            return;
+                        }
+
+                        lastTotalPage = res.totalPage;
+
+                        // JS插件固定格式
+                        $('#list').twbsPagination('destroy');
+                        $('#list').twbsPagination({
+                            // 设置总共多少分页 文档给的我们固定页数 我们就按照文档的意思来
+                            totalPages: res.totalPage,
+                            // 显示多少页
+                            visiblePages: 7,
+                            // 更改字体
+                            first: "首页",
+                            last: '尾页',
+                            prev: '上一页',
+                            next: "下一页",
+
+                            onPageClick: function(e, currentPage) {
+                                page = currentPage;
+                                getArticle();
+                            }
+                        });
+                    }
+                }
+            });
+        };
     </script>
 
 </body>

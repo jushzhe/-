@@ -8,3 +8,5 @@ var LOGOUT = BASE_URL + '/admin/logout';
 
 // 
 var GETURL = BASE_URL + '/admin/getuser';
+
+var GET_CATE = BASE_URL + '/admin/category_search';

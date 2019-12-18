@@ -68,7 +68,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal">新增分类</a>
+                            <a href="#" class="btn btn-success" data-toggle="modal" data-target="#addModal" id="addCate">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -85,6 +85,7 @@
                 </div>
                 <div class="modal-body">
                     <form>
+                        <input type="hidden" id="hidden" name="id">
                         <div class="form-group">
                             <label for="name" class="control-label">分类名称:</label>
                             <input type="text" class="form-control" id="name" name="name">
@@ -98,6 +99,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" id="model_shutoff">关闭</button>
                     <button type="button" class="btn btn-primary" id="model_add">新增</button>
+                    <button type="button" class="btn btn-primary" style="display: none;" id='model_edit'>提交编辑</button>
                 </div>
             </div>
         </div>
@@ -140,8 +142,8 @@
             <td>{{val.name}}</td>
             <td>{{val.slug}}</td>
             <td class="text-center">
-                <a href="javascript:;" class="btn btn-info btn-xs">编辑</a>
-                <a href="javascript:;" class="btn btn-danger btn-xs">删除</a>
+                <a href="javascript:;" data-id='{{val.id}}' class="btn btn-info btn-xs edit ">编辑</a>
+                <a href="javascript:;" data-id='{{val.id}}' class="btn btn-danger btn-xs del">删除</a>
             </td>
         </tr>
         {{/each}}
@@ -154,7 +156,7 @@
         $.ajax({
             url: 'http://localhost:8000/admin/category_search',
             success: function(res) {
-                console.log(res);
+                // console.log(res);
 
                 if (res.code === 200) {
                     var htmls = template('category', res)
@@ -169,6 +171,8 @@
 
         // 获取新增按钮
         // 获取新增按钮 并注册点击事件
+
+
         $('#model_add').on('click', function() {
             // 取出name和slug的内容并用个变量接收
             var name = $('#name').val().trim();
@@ -197,7 +201,85 @@
                         location.reload();
 
                     } else {
+                        // 如果失败弹窗提示
                         alert('已存在.请重试');
+                        $('form')[0].reset();
+                    }
+                }
+            });
+        });
+
+        // 设置关闭按钮
+        $('#model_shutoff').on('click', function() {
+
+            $('form')[0].reset();
+            $('#addModal').modal('hide');
+        });
+
+        // 点击新增分类按钮  提交按钮隐藏 新增按钮显示
+        // 获取新增分类按钮 注册点击事件
+        $('#addCate').on('click', function() {
+            $('#model_add').show();
+            $('#model_edit').hide();
+        });
+        //点击编辑按钮  新增按钮隐藏 提交按钮显示
+        // 当页面是自己创建的时候.页面本身没有的情况下, 除去遍历等因素.. 这个时候就需要用到事件委托
+        $('#tbody').on('click', '.edit', function() {
+            $('#addModal').modal('show');
+            $('#model_add').hide();
+            $('#model_edit').show();
+
+
+            // 将编辑的数据内容展示到表单中
+            var id = $(this).data('id');
+            $('#hidden').val(id);
+            // 取出当前所有的td
+            var $tds = $(this).parents('tr').children();
+            $('#name').val($tds.eq(0).text());
+            $('#slug').val($tds.eq(1).text());
+        });
+
+        //   提交按钮 设置
+
+        // 获取提交按钮 并注册点击事件
+        $('#model_edit').on('click', function() {
+
+
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/category_edit',
+                data: $('form').serialize(),
+                success: function(res) {
+
+                    // 判断
+                    if (res.code === 200) {
+                        location.reload();
+
+                    } else {
+                        alert('请填写内容');
+                    }
+                }
+            });
+        });
+
+        // 功能实现
+        // 获取删除按钮 注册点击事件
+        // 这里也需要使用事件委托
+        $('#tbody').on('click', '.del', function() {
+
+            var id = $(this).data('id');
+
+            // 发送请求
+            $.ajax({
+                type: 'post',
+                url: 'http://localhost:8000/admin/category_delete',
+                data: {
+                    id: id
+                },
+                success: function(res) {
+                    // console.log(res);
+                    if (res.code === 200) {
+                        location.reload();
                     }
                 }
             });
